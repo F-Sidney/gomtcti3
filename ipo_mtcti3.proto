@@ -1,0 +1,778 @@
+///////////////////////////////////////////////////////////////////////////////////////
+// Copyright Avaya Inc. All Rights reserved
+//  ipo_mtcti3.proto
+//  Version 1.0
+///////////////////////////////////////////////////////////////////////////////////////
+
+syntax = "proto3";
+
+message PartyInfo
+{
+    int32 numbertype = 1;
+    string number = 2;
+    string subaddr = 3;
+    string name = 4;
+    int32 nametype = 5;
+    bool withheld = 6;
+    int32 diversionreason = 7;
+}
+
+message DialInfo
+{
+    string number = 1;
+    int32 calltype = 2;
+    bool  withholdcli = 3;
+    bool  hidenumber = 4;
+    bool  complete = 5;
+    string madn = 6;
+    string subaddr = 7;
+    bool  allowcli = 8;
+    string explicitcli = 9;
+}
+
+
+message TrunkInfo
+{
+    enum TrunkType
+    {
+        NoTrunk = 0;
+        TrunkSIP = 1;
+        TrunkISDN = 2;
+        TrunkH323 = 3;
+        TrunkT1 = 4;
+        TrunkR2 = 5;
+        TrunkAlog = 6;
+    }
+    TrunkType trunktype = 1;
+    string did = 5;
+}
+
+message QueueInfo
+{
+    string number = 3;
+    string name = 4;
+    int32 priority = 5;
+    string overflow_number = 6;
+    string overflow_name = 7;
+}
+
+message EndInfo
+{
+    bytes gcid = 1;
+    int32 deviceclass = 2;
+    int32 devicetype = 3;
+    int32 deviceinstance = 4;
+    string teleworker = 5;
+}
+
+message Target
+{
+    PartyInfo partyinfo = 1;
+}
+
+message Targets
+{
+    repeated Target target = 1;
+}
+
+message PIntrinsics
+{
+    bytes pintrinsics = 1;
+}
+
+message UCID
+{
+    bytes ucid = 1;
+}
+
+message Notes
+{
+    string notes = 1;
+}
+
+message CallData
+{
+    string language = 1;
+    bool  emergency = 2;
+    bool  privacy = 3;
+    bool  secure = 4;
+    bool  rprivacy = 5;
+}
+
+message Absence
+{
+    int32 msg = 1;
+    string str = 2;
+}
+
+message ConferenceMember
+{
+    enum State
+    {
+        UNKNOWN = 0;
+        DIALTONE = 1;
+        DIALLING = 2;
+        DIALLED = 3;
+        RINGING = 4;
+        RINGBACK = 5;
+        CONNECTED = 6;
+        ONHOLD = 7;
+        ONHOLDPENDTRANSFER = 8;
+        ONHOLDPENDCONF = 9;
+        DISCONNECTED = 10;
+        BUSY = 11;
+        FAILED = 12;
+        WAITINGFORACCT = 13;
+        WAITINGFORAUTH = 14;
+        WAITINGFORLINE = 15;
+    }
+    enum Direction
+    {
+        UNDEFINED = 0;
+        OUTBOUND = 1;
+        INBOUND = 2;
+        PICKUP = 3;
+    }
+    enum FailedCause
+    {
+        UNSET = 0;
+        UNSPECIFIED = 1;
+        UNALLOCATEDNUMBER = 2;
+        REJECTED = 3;
+        NUMBEROOO = 4;
+        NETWORKOOO = 5;
+        BARRED = 6;
+        NOCHANNEL = 7;
+        NOACCOUNTCODE = 8;
+        NOAUTHCODE = 9;
+        NOLICENCE = 10;
+        LOCALRESOURCES = 11;
+        BANDWIDTH = 12;
+        COMPATIBILITY = 13;
+        CANTRECORD = 14;
+    }
+    int32 lref = 2;
+    State state = 5;
+    Direction direction = 6;
+    bool  activeheld = 7;
+    string calledparty = 10;
+    PartyInfo connectedparty = 12;
+    bool   mute = 16;
+    FailedCause  failedcause = 17;
+}
+
+message CallInfo
+{
+    enum State
+    {
+        UNKNOWN = 0;
+        DIALTONE = 1;
+        DIALLING = 2;
+        DIALLED = 3;
+        RINGING = 4;
+        RINGBACK = 5;
+        CONNECTED = 6;
+        ONHOLD = 7;
+        ONHOLDPENDTRANSFER = 8;
+        ONHOLDPENDCONF = 9;
+        DISCONNECTED = 10;
+        BUSY = 11;
+        FAILED = 12;
+        WAITINGFORACCT = 13;
+        WAITINGFORAUTH = 14;
+        WAITINGFORLINE = 15;
+        REMINDER = 16;
+        AFTERCALLWORK = 17;
+        RINGINGDIVERT = 18;
+        RINGINGVOICEMAIL = 19;
+        ANSWEREDBYVOICEMAIL = 20;
+        LEAVINGVOICEMAILMESSAGE = 21;
+        QUEUEING = 22;
+        RETARGETING = 23;
+    }
+    enum Direction
+    {
+        UNDEFINED = 0;
+        OUTBOUND = 1;
+        INBOUND = 2;
+        PICKUP = 3;
+    }
+    enum FailedCause
+    {
+        UNSET = 0;
+        UNSPECIFIED = 1;
+        UNALLOCATEDNUMBER = 2;
+        REJECTED = 3;
+        NUMBEROOO = 4;
+        NETWORKOOO = 5;
+        BARRED = 6;
+        NOCHANNEL = 7;
+        NOACCOUNTCODE = 8;
+        NOAUTHCODE = 9;
+        NOLICENCE = 10;
+        LOCALRESOURCES = 11;
+        BANDWIDTH = 12;
+        COMPATIBILITY = 13;
+        CANTRECORD = 14;
+        NORESPONSE = 15;
+    }
+    int32 callid = 2;
+    int32 referencecallid = 3;
+    int32 relatedcallid = 4;
+    State state = 5;
+    Direction direction = 6;
+    bool  activeheld = 7;
+    bytes gcid = 8;
+    int32 featuresavailable = 9;
+    string calledparty = 10;
+    PartyInfo callingparty = 11;
+    PartyInfo connectedparty = 12;
+    PartyInfo originalcalledparty = 13;
+    string tag = 14;
+    string accountcode = 15;
+    bool mute = 16;
+    FailedCause failedcause = 17;
+    int32 featuresavailable2 = 18;
+    bool recording = 19;
+    string parkslot = 20;
+    Absence absence = 21;
+    bool recordingpaused = 22;
+    bool pagecall = 23;
+    EndInfo remoteinfo = 50;
+    repeated EndInfo localinfo = 51;
+    repeated ConferenceMember conferencemember = 52;
+    DialInfo dialinfo = 53;
+    TrunkInfo trunkinfo = 54;
+    QueueInfo queueinfo = 55;
+    CallData calldata = 56;
+    Notes notes = 62;
+    UCID ucid = 63;
+    PIntrinsics pintrinsics = 64;
+    Targets targets = 67;
+}
+
+message CallLost
+{
+    int32 callid = 1;
+    int32 referencecallid = 2;
+    int32 reason = 3;
+    bool  thisenddropped = 4;
+    string description = 5;
+}
+
+message AgentRecordingControl
+{
+    bool pause = 1;
+    bool resume = 2;
+}
+
+message ShortCodeData
+{
+    int32  code = 1;
+    string val = 2;
+    string onbehalf = 3;
+}
+
+message MemberFunctionData
+{
+    enum Action
+    {
+        None = 0;
+        DropCall = 1;
+        MuteOn = 2;
+        MuteOff = 3;
+    }    
+    int32 lref = 1;
+    Action action = 2;
+}
+
+message CallInstance
+{
+    int32 callid = 1;
+    int32 referencecallid = 2;
+}
+
+message CallFunction
+{
+    enum Action
+    {
+        None = 0;
+        DropCall = 1;
+        AnswerCall = 2;
+        HoldCall = 3;
+        UnHoldCall = 4;
+        BlindTransfer = 5;
+        Redirect = 6;
+        Dial = 7;
+        Park = 8;
+        SetupTransfer = 9;
+        SetupConf = 10;
+        CompleteTransfer = 11;
+        CompleteConf = 12;
+        AddToConf = 13;
+        MemberFunction = 14;
+        SetTag = 15;
+        SetAccountCode = 16;
+        SetNotes = 17;
+        PushToEC500 = 18;
+        GenerateDigits = 19;
+        ShortCodeAction = 20;
+        Unused21 = 21;
+        AnswerPage = 22;
+        ForceClear = 23;
+        SetAuthCode = 24;
+        CallRecordingOn = 25;
+        CallRecordingOff = 26;
+        PrivacyOn = 27;
+        PrivacyOff = 28;
+        MuteOn = 29;
+        MuteOff = 30;
+        Unused31 = 31;
+        AgentRecordingControl = 32;
+        Unused33 = 33;
+        SetPriority = 34;
+        Finish = 35;
+    }
+    Action action = 1;
+    string arg1 = 2;
+    ShortCodeData shortcodedata = 3;
+    MemberFunctionData memberfunctiondata = 4;
+    repeated CallInstance callinst = 5;
+    AgentRecordingControl agentrecording = 6;
+    bool tapimoh = 8;
+}
+
+message AdvancedMakeCall
+{
+    string accountcode = 1;
+    string authcode = 2;
+    string tag = 3;
+    string subaddr = 4;
+    bool   withholdcli = 5;
+    bool   privacy = 6;
+    string madn = 7;
+    bool   allowcli = 8;
+    string explicitcli = 10;
+    string proxyorigin = 11;
+}
+
+message MakeCall
+{
+    string target = 1;
+    int32  type = 2;
+    AdvancedMakeCall advanced = 3;
+}
+
+message UnParkCall
+{
+    string parkid = 1;
+}
+
+message UpdateCallControl
+{
+    enum Device
+    {
+        UNSPECIFIED = 0;
+        DESK = 1;
+        MOBILEANY = 2;
+        SOFTPHONEANY = 3;
+    }
+    int32 callid = 1;
+    int32 referencecallid = 2;
+    MakeCall makecall = 3;
+    CallFunction callfunction = 4;
+    UnParkCall unparkcall = 6;
+    Device devicehint = 8;
+}
+
+message NotifyCallControl
+{
+    int32 refreshinstance = 1;
+    repeated CallInfo callinfo = 2;
+    repeated CallLost calllost = 3;
+}
+
+message NotifyPresentity
+{
+    string presentity = 1;
+    int32 lref = 2;
+    bool sac = 3;
+    int32 phonestate = 4;
+    Absence absence = 5;
+    string app = 6;
+    bool fwdu = 7;
+    int32 vmunread_messages = 8;
+}
+
+message Presentity
+{
+    string presentity = 1;
+    int32 lref = 2;
+}
+
+message NotifyPresence
+{
+    int32 full = 1;
+    repeated NotifyPresentity entry = 2;
+}
+
+message SubscribePresence
+{
+    repeated Presentity entry = 1;
+    int32 flags = 2;
+}
+
+message UpdatePresence
+{
+    repeated Presentity add = 1;
+    repeated Presentity remove = 2;
+}
+
+
+
+message SubscribeParkServer
+{
+    int32 flags = 1;
+    int32 ccflags = 2;
+}
+
+message SubscribeRefreshWrapper
+{
+    int32 dummy = 1;
+}
+
+message NotifyParkServer
+{
+    int32 dummy = 1;
+}
+
+message NotifyRefreshWrapper
+{
+    int32 dummy = 1;
+}
+
+message QueueMember
+{
+    string  extn = 1;
+    bool  disabled = 2;
+}
+
+message QueueMembers
+{
+    repeated QueueMember member = 1;
+}
+
+message Mailbox
+{
+    int32 newmessages = 1;
+    int32 oldmessages = 2;
+    int32 savedmessages = 3;
+}
+message NotifyQueue
+{
+    enum ServiceMode
+    {
+        Unset = 0;
+        Active = 1;
+        NS = 2;
+        OOS = 3;
+    }
+    string  extn = 2;
+    string  name = 3;
+    string  katakananame = 4;
+    string  email = 5;
+    int32   ringmode = 6;
+    int32   noanswertime = 7;
+    bool    voicemail = 8;
+    int32   voicemailtime = 9;
+    ServiceMode servicemode = 10;
+    QueueMembers queuemembers = 11;
+    Mailbox mailbox = 12; 
+}
+
+message SetVoicemail
+{
+    bool enabled = 1;
+}
+
+message SetServiceMode
+{
+    enum ServiceMode
+    {
+        Unset = 0;
+        Active = 1;
+        NS = 2;
+        OOS = 3;
+    }
+    ServiceMode servicemode = 1;
+}
+
+message UpdateQueue
+{
+    SetServiceMode setservicemode = 1;
+    SetVoicemail setvoicemail = 2;
+    QueueMembers members = 3;
+    repeated QueueMember addmember = 4;
+    repeated QueueMember deletemember = 5;
+}
+
+message SubscribeQueue
+{
+    bytes guid = 1;
+    int32 flags = 2;
+    int32 ccflags = 3;
+    string name = 4;
+}
+
+message NotifyUser
+{
+    string  extn = 2;
+    string  name = 3;
+    string  fullname = 4;
+    string  katakananame = 5;
+    string  email = 6;
+    int32   featuresavailable = 7;
+    string  language = 8;
+    bool    dnd = 9;
+    bool    barred = 10;
+    bool    xdirectory = 11;
+    bool    voicemail = 12;
+    string  loggedinextn = 13;
+    bool    extnfault = 14;
+    bool    loggedoff = 15;
+    Absence absence = 16;
+    Mailbox mailbox = 17; 
+    string  app = 18;
+    bool    noapphandler = 19;
+    bool    ec500 = 20;
+    bool    fwdu = 21;
+    bool    fwdb = 22;
+    bool    fwdna = 23;
+    bool    fwdhg = 24;
+    string  fwdunumber = 25;
+    string  fwdbnumber = 26;
+    bool    fwdtovm = 27;
+    bool    offswitch = 28;
+}
+
+message SubscribeUser
+{
+    bytes guid = 1;
+    int32 flags = 2;
+    int32 ccflags = 3;
+}
+
+message UpdateUserSAC
+{
+    int32 set = 1;
+}
+
+message UpdateUserEC500
+{
+    int32 set = 1;
+}
+
+message UpdateUserAbsence
+{
+    int32 set = 1;
+    Absence absence = 2;
+}
+
+message TeleworkerConnection
+{
+    string number = 1;
+    bool   holdlineopen = 2;
+    int32  testconnection = 3;
+}
+
+message UpdateUserLoginExtn
+{
+    string extn = 1;
+    string password = 2;
+    TeleworkerConnection teleworkerconnection = 3;
+}
+
+message UpdateUserApp
+{
+    string value = 1;
+    bool   makelive = 2;
+    bool   makedead = 3;
+}
+
+message UpdateUserFwdU
+{
+    bool set = 1;
+    string fwdu_number = 2;
+    bool fwdtovm = 3;
+}
+
+
+message UpdateUser
+{
+    UpdateUserSAC sac = 1;
+    UpdateUserAbsence absence = 2;
+    UpdateUserEC500 ec500 = 3;
+    repeated ShortCodeData shortcodedata = 4;
+    UpdateUserLoginExtn loginextn = 7;
+    UpdateUserApp app = 8;
+    UpdateUserFwdU fwdu = 9;
+}
+
+
+message SubscribeLines
+{
+    int32 flags = 1;
+}
+
+message LinesUser
+{
+    bytes guid = 1;
+    string extn = 2;
+    string name = 3;
+}
+
+message LinesQueue
+{
+    bytes guid = 1;
+    string extn = 2;
+    string name = 3;
+}
+
+
+message NotifyLines
+{
+    int32 flags = 1;
+    repeated LinesUser adduser = 2;
+    repeated LinesQueue addqueue = 3;
+    repeated LinesUser deleteuser = 4;
+    repeated LinesQueue deletequeue = 5;
+    repeated LinesUser changeuser = 6;
+    repeated LinesQueue changequeue = 7;
+}
+
+
+
+message Notify
+{
+    int32 subscribe_id = 1;
+    int32 notify_id = 2;
+    string label = 3;
+    oneof payload
+    {
+        NotifyPresence presence = 10;
+        NotifyCallControl callcontrol = 14;
+        NotifyLines lines = 40;
+        NotifyUser user = 41;
+        NotifyQueue queue = 42;
+        NotifyParkServer parkserver = 43;
+        NotifyRefreshWrapper refreshwrapper = 45;
+    }
+}
+
+message NotifyAck
+{
+    int32 subscribe_id = 1;
+    int32 notify_id = 2;
+}
+
+message Subscribe
+{
+    int32 requestid = 1;
+    int32 subscribe_id = 2;
+    int32 timeout = 3;
+    string label = 4;
+    oneof payload
+    {
+        SubscribePresence presence = 10;
+        SubscribeLines lines = 40;
+        SubscribeUser user = 41;
+        SubscribeQueue queue = 42;
+        SubscribeParkServer parkserver = 43;
+        SubscribeRefreshWrapper refreshwrapper = 45;
+    }
+}
+
+message GetFile
+{
+    int32 cmdinst = 1;
+    string fname = 2;
+}
+
+message GetFileResponse
+{
+    int32 cmdinst = 1;
+    string fname = 2;
+    int32 result = 3;
+    bytes payload = 4;
+}
+
+message GeneralCmd
+{
+    int32 requestid = 1;
+    oneof payload
+    {
+        GetFile getfile = 6;
+    }
+}
+
+message GeneralData
+{
+    int32 responseid = 1;
+    oneof payload
+    {
+        GetFileResponse getfile = 6;
+    }
+}
+
+
+message SubscribeEnd
+{
+    int32 requestid = 1;
+    int32 subscribe_id = 2;
+    string reason = 3;
+}
+
+message SubscribeTerminated
+{
+    int32 subscribe_id = 1;
+    string reason = 2;
+}
+
+message SubscribeCmd
+{
+    int32 requestid = 1;
+    int32 subscribe_id = 2;
+    oneof payload
+    {
+        int32 timeout = 3;
+        UpdatePresence presence = 10;
+        UpdateCallControl callcontrol = 14;
+        UpdateUser user = 41;
+        UpdateQueue queue = 42;
+    }
+}
+
+message RequestResponse
+{
+    int32 requestid = 1;
+    int32 result = 2;
+    string additional = 3;
+}
+
+message Message
+{
+    oneof payload
+    {
+        RequestResponse response = 1;
+        GeneralCmd generalcmd = 2;
+        Subscribe subscribe = 3;
+        SubscribeCmd subscribecmd = 4;
+        SubscribeEnd subscribeend = 5;
+        SubscribeTerminated subscribeterminated = 6;
+        GeneralData generaldata = 7;
+        Notify notify = 8;
+        NotifyAck notifyack = 9;
+    }
+}
+
+
