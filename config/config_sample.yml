@@ -1,0 +1,5 @@
+server:
+  url: "wss://127.0.0.1:443/tpkt/openapi"
+  username: ""
+  password: ""
+  

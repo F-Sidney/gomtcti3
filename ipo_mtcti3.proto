@@ -6,6 +6,10 @@
 
 syntax = "proto3";
 
+package main;
+
+option go_package = "./ipo_mtcti3";
+
 message PartyInfo
 {
     int32 numbertype = 1;
