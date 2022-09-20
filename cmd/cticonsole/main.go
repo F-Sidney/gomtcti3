@@ -27,11 +27,9 @@ func completer(d prompt.Document) []prompt.Suggest {
 		{Text: "ShowLines", Description: "show all lines information in tab"},
 		{Text: "ShowUsers", Description: "show all users details"},
 		{Text: "ShowQueues", Description: "show all queues details"},
-		{Text: "Q", Description: "exit"},
-		{Text: "Exit", Description: "exit"},
-		{Text: "Quit", Description: "exit"},
 		{Text: "TraceOn", Description: "enable verbose trace log output"},
 		{Text: "TraceOff", Description: "disable verbose trace log output"},
+		{Text: "Quit", Description: "exit"},
 	}
 	return prompt.FilterContains(s, d.TextBeforeCursor(), true)
 }
@@ -49,15 +47,29 @@ func getExecuter(ipoSrv *ipo.IPO) func(string) {
 		case "login":
 			ipoSrv.Login()
 		case "querylines":
-			ipoSrv.SubscribeLines()
+			err := ipoSrv.SubscribeLines()
+			if err != nil {
+				AsyncWrite(fmt.Sprintf("QueryLines error: %s", err))
+			} else {
+				AsyncWrite(fmt.Sprint("QueryLines cmd send OK."))
+			}
+		case "queryqueues":
+			err := ipoSrv.SubscribeAllQueues()
+			if err != nil {
+				AsyncWrite(fmt.Sprintf("QueryQueues error: %s", err))
+			} else {
+				AsyncWrite(fmt.Sprint("QueryQueues cmd send OK."))
+			}
 		case "showlines":
 			ipoSrv.GetLinesTable()
-		case "queue":
-			ipoSrv.SubscribeQueueByName("G190")
+		case "showqueues":
+			ipoSrv.GetAllQueuesTable()
 		case "traceon":
 			ipoSrv.SetTrace(true)
 		case "traceoff":
 			ipoSrv.SetTrace(false)
+		case "sysinfo":
+			ipoSrv.GetSysInfo()
 		case "context":
 			AsyncWrite(fmt.Sprintf("current context:%s", ipoSrv.Context))
 		default:

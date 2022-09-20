@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
+	"syscall"
 	"text/tabwriter"
 
 	"github.com/google/uuid"
@@ -24,7 +26,7 @@ type IPO struct {
 	Context    string
 	AsyncWrite AsyncWriteFunc
 	Lines      *ipo_mtcti3.NotifyLines
-
+	Queues     map[string]*ipo_mtcti3.NotifyQueue
 	// Users *ipo_mtcti3.NotifyUser;
 	// Queue *ipo_mtcti3.NotifyQueue
 	conn    *websocket.Conn
@@ -56,6 +58,17 @@ func (ipoSrv *IPO) GetUsers() []*ipo_mtcti3.LinesUser {
 	return nil
 }
 
+func (ipoSrv *IPO) GetSysInfo() {
+	if runtime.GOOS == "windows" {
+		v, _ := syscall.GetVersion()
+
+		majorVer := byte(v)
+		minorVer := uint8(v >> 8)
+		buildVer := uint8(v >> 16)
+		ipoSrv.WriteLog(fmt.Sprintf("Current OS version, Major:%d,Minor:%d, build:%d", majorVer, minorVer, buildVer), false)
+	}
+}
+
 func (ipoSrv *IPO) GetLinesTable() error {
 	if ipoSrv.Lines != nil {
 		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
@@ -65,6 +78,7 @@ func (ipoSrv *IPO) GetLinesTable() error {
 		//no clolor: "\033[0m"
 		//;1 bold, ;21 off bold
 		//;4 underline, ;24 off underline
+		// known issue: colors only works on windows 10 and above.
 		fmt.Fprintln(w, "\033[32;1;4muser\tguid\textn\tname")
 		for idx, user := range ipoSrv.Lines.Adduser {
 			uid, _ := uuid.FromBytes(user.Guid)
@@ -80,6 +94,43 @@ func (ipoSrv *IPO) GetLinesTable() error {
 		w.Flush()
 	} else {
 		ipoSrv.WriteLog("Please get line info first", true)
+	}
+	return nil
+}
+
+func (ipoSrv *IPO) GetAllQueuesTable() error {
+	if ipoSrv.Queues != nil {
+		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
+		//blue color: "\033[34m"
+		//yellow color: "\033[33m"
+		//Green := "\033[32m"
+		//no clolor: "\033[0m"
+		//;1 bold, ;21 off bold
+		//;4 underline, ;24 off underline
+		// known issue: colors only works on windows 10 and above.
+		var idx int = 0
+		fmt.Fprintln(w, "\033[32;1;4mqueue\textn\tname\tkatakananame\temail\tringmode"+
+			"\tnoanswertime\tvoicemail\tvoicemailtime\tservicemode")
+		for extn, queue := range ipoSrv.Queues {
+			idx++
+			fmt.Fprintf(w, "\033[33;21;24m%d\t\033[0m%s\t%s\t%s\t%s\t%d"+
+				"\t%d\t%t\t%d\t%s\n",
+				idx, extn, queue.Name, queue.Katakananame, queue.Email, queue.Ringmode,
+				queue.Noanswertime, queue.Voicemail, queue.Voicemailtime, queue.Servicemode)
+		}
+		w.Flush()
+
+		fmt.Fprintln(w, "")
+		for extn, queue := range ipoSrv.Queues {
+			fmt.Fprintf(w, "\033[32;1;4m%s Member\textn\tdisabled\n", extn)
+			for idx, member := range queue.Queuemembers.Member {
+				fmt.Fprintf(w, "\033[33;21;24m%d\t\033[0m%s\t%t\n", idx, member.Extn, member.Disabled)
+			}
+			fmt.Fprintln(w, "")
+		}
+		w.Flush()
+	} else {
+		ipoSrv.WriteLog("Please get queues info first", true)
 	}
 	return nil
 }
@@ -122,7 +173,31 @@ func (ipoSrv *IPO) SubscribeLines() error {
 	return ipoSrv.conn.WriteMessage(websocket.BinaryMessage, append(framePrefix[:], data[:]...))
 }
 
-func (ipoSrv *IPO) SubscribeQueue(queue *ipo_mtcti3.LinesQueue) error {
+func (ipoSrv *IPO) SubscribeAllQueues() error {
+	if ipoSrv.conn == nil {
+		ipoSrv.WriteLog("Please login first!", true)
+		return fmt.Errorf("conn not open, please login first!")
+	}
+
+	if ipoSrv.Lines == nil {
+		ipoSrv.WriteLog("Please get Lines first!", true)
+		return fmt.Errorf("Need get lines first!")
+	}
+
+	errstr := ""
+	for idx, addqueue := range ipoSrv.Lines.Addqueue {
+		err := ipoSrv.subscribeQueue((int32)(idx+100), addqueue)
+		errstr += fmt.Sprintf("error on sub queue: %s, error info:%s\n", addqueue.Name, err)
+	}
+	if errstr == "" {
+		return nil
+	} else {
+		return fmt.Errorf("subscribe all queues error: %s", errstr)
+	}
+
+}
+
+func (ipoSrv *IPO) subscribeQueue(subid int32, queue *ipo_mtcti3.LinesQueue) error {
 	if ipoSrv.conn == nil {
 		ipoSrv.WriteLog("Please login first!", true)
 		return fmt.Errorf("conn not open, please login first!")
@@ -131,7 +206,7 @@ func (ipoSrv *IPO) SubscribeQueue(queue *ipo_mtcti3.LinesQueue) error {
 	msg := &ipo_mtcti3.Message{
 		Payload: &ipo_mtcti3.Message_Subscribe{
 			Subscribe: &ipo_mtcti3.Subscribe{
-				SubscribeId: 2,
+				SubscribeId: subid,
 				Requestid:   1,
 				Timeout:     0,
 				Payload: &ipo_mtcti3.Subscribe_Queue{
@@ -139,7 +214,6 @@ func (ipoSrv *IPO) SubscribeQueue(queue *ipo_mtcti3.LinesQueue) error {
 						Guid:    queue.Guid,
 						Flags:   0x3,
 						Ccflags: 0x40039,
-						// Name:    "G190",
 					},
 				},
 			},
@@ -163,7 +237,7 @@ func (ipoSrv *IPO) SubscribeQueue(queue *ipo_mtcti3.LinesQueue) error {
 	return ipoSrv.conn.WriteMessage(websocket.BinaryMessage, append(framePrefix[:], data[:]...))
 }
 
-func (ipoSrv *IPO) SubscribeQueueByName(queueName string) error {
+func (ipoSrv *IPO) subscribeQueueByName(queueName string) error {
 	if ipoSrv.conn == nil {
 		ipoSrv.WriteLog("Please login first!", true)
 		return fmt.Errorf("conn not open, please login first!")
@@ -248,6 +322,8 @@ func (ipoSrv *IPO) loginFunc(cfg *config.Configurations) (*websocket.Conn, error
 						switch py := realMsg.GetNotify().Payload.(type) {
 						case *ipo_mtcti3.Notify_Lines:
 							ipoSrv.Lines = py.Lines
+						case *ipo_mtcti3.Notify_Queue:
+							ipoSrv.addOrUpdateQueueList(py.Queue)
 						default:
 							ipoSrv.WriteLog("Unknown type found!", false)
 						}
@@ -270,6 +346,14 @@ func (ipoSrv *IPO) loginFunc(cfg *config.Configurations) (*websocket.Conn, error
 	return conn, err
 }
 
+func (ipoSrv *IPO) addOrUpdateQueueList(queueInfo *ipo_mtcti3.NotifyQueue) {
+	if ipoSrv.Queues == nil {
+		ipoSrv.Queues = make(map[string]*ipo_mtcti3.NotifyQueue, 10)
+	}
+
+	ipoSrv.Queues[queueInfo.Extn] = queueInfo
+}
+
 func (ipoSrv *IPO) Login() error {
 	if ipoSrv.conn == nil {
 		if ipoSrv.Config == nil {
@@ -277,10 +361,14 @@ func (ipoSrv *IPO) Login() error {
 			if err != nil {
 				return fmt.Errorf("Readconfig failed: %s", err)
 			}
-
 			ipoSrv.conn, err = ipoSrv.loginFunc(ipoSrv.Config)
 			return err
 		}
+
+		var err error = nil
+		ipoSrv.conn, err = ipoSrv.loginFunc(ipoSrv.Config)
+		return err
+
 	} else {
 		ipoSrv.WriteLog("already login!", true)
 	}
