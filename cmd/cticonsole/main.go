@@ -68,8 +68,8 @@ func getExecuter(ipoSrv *ipo.IPO) func(string) {
 			ipoSrv.SetTrace(true)
 		case "traceoff":
 			ipoSrv.SetTrace(false)
-		case "sysinfo":
-			ipoSrv.GetSysInfo()
+		// case "sysinfo":
+		// 	ipoSrv.GetSysInfo()
 		case "context":
 			AsyncWrite(fmt.Sprintf("current context:%s", ipoSrv.Context))
 		default:

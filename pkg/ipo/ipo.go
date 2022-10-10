@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"runtime"
-	"syscall"
 	"text/tabwriter"
 
 	"github.com/google/uuid"
@@ -58,16 +56,16 @@ func (ipoSrv *IPO) GetUsers() []*ipo_mtcti3.LinesUser {
 	return nil
 }
 
-func (ipoSrv *IPO) GetSysInfo() {
-	if runtime.GOOS == "windows" {
-		v, _ := syscall.GetVersion()
+// func (ipoSrv *IPO) GetSysInfo() {
+// 	if runtime.GOOS == "windows" {
+// 		v, _ := syscall.GetVersion()
 
-		majorVer := byte(v)
-		minorVer := uint8(v >> 8)
-		buildVer := uint8(v >> 16)
-		ipoSrv.WriteLog(fmt.Sprintf("Current OS version, Major:%d,Minor:%d, build:%d", majorVer, minorVer, buildVer), false)
-	}
-}
+// 		majorVer := byte(v)
+// 		minorVer := uint8(v >> 8)
+// 		buildVer := uint8(v >> 16)
+// 		ipoSrv.WriteLog(fmt.Sprintf("Current OS version, Major:%d,Minor:%d, build:%d", majorVer, minorVer, buildVer), false)
+// 	}
+// }
 
 func (ipoSrv *IPO) GetLinesTable() error {
 	if ipoSrv.Lines != nil {
@@ -187,12 +185,14 @@ func (ipoSrv *IPO) SubscribeAllQueues() error {
 	errstr := ""
 	for idx, addqueue := range ipoSrv.Lines.Addqueue {
 		err := ipoSrv.subscribeQueue((int32)(idx+100), addqueue)
-		errstr += fmt.Sprintf("error on sub queue: %s, error info:%s\n", addqueue.Name, err)
+		if err != nil {
+			errstr += fmt.Sprintf("error on sub queue: %s, error info:%s\n", addqueue.Name, err)
+		}
 	}
 	if errstr == "" {
 		return nil
 	} else {
-		return fmt.Errorf("subscribe all queues error: %s", errstr)
+		return fmt.Errorf("subscribe all queues error: \n%s", errstr)
 	}
 
 }
